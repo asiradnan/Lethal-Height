@@ -1,8 +1,17 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+import threading
+import time
 
 R,G,B = 1,1,1
 player1_y, player2_y = 0, 0
+player1_up = False
+player1_down = False
+player2_up = False
+player2_down = False
+player_speed = 5
+
+
 def draw_points(x, y, size, flag):
     global R,G,B
     glPointSize(size)
@@ -202,19 +211,57 @@ def redraw():
     
     glutPostRedisplay()
 
+def move_player1():
+    global player1_y, player1_up, player1_down
+    while True:
+        if player1_up:
+            player1_y = min(480, player1_y+player_speed)
+        if player1_down:
+            player1_y = max(0,player1_y-player_speed)
+        time.sleep(0.01)
+
+def move_player2():
+    global player2_y, player2_up, player2_down
+    while True:
+        if player2_up:
+            player2_y = min(480, player2_y+player_speed)
+        if player2_down:
+            player2_y = max(0,player2_y-player_speed)
+        time.sleep(0.01)
+
+# Update keyboard listeners
 def keyboardListener(key, x, y):
-    global player1_y
+    global player1_up, player1_down
     if key == b'w':
-        player1_y += 10
+        player1_up = True
     elif key == b's':
-        player1_y -= 10
+        player1_down = True
+
+def keyboardUpListener(key, x, y):
+    global player1_up, player1_down
+    if key == b'w':
+        player1_up = False
+    elif key == b's':
+        player1_down = False
 
 def specialKeyListener(key, x, y):
-    global  player2_y
+    global player2_up, player2_down
     if key == GLUT_KEY_UP:
-        player2_y += 10
+        player2_up = True
     elif key == GLUT_KEY_DOWN:
-        player2_y -= 10
+        player2_down = True
+
+def specialKeyUpListener(key, x, y):
+    global player2_up, player2_down
+    if key == GLUT_KEY_UP:
+        player2_up = False
+    elif key == GLUT_KEY_DOWN:
+        player2_down = False
+
+# Start threads
+threading.Thread(target=move_player1, daemon=True).start()
+threading.Thread(target=move_player2, daemon=True).start()
+
         
 
 
@@ -226,6 +273,8 @@ wind = glutCreateWindow(b"Game!")  #window name
 glutDisplayFunc(showScreen)
 glutKeyboardFunc(keyboardListener)
 glutSpecialFunc(specialKeyListener)
+glutKeyboardUpFunc(keyboardUpListener)
+glutSpecialUpFunc(specialKeyUpListener)
 # glutMouseFunc(mouseListener)
 glutIdleFunc(redraw)
 make_game_over = False
