@@ -11,6 +11,32 @@ player2_up = False
 player2_down = False
 player_speed = 5
 
+last_shot_time = {"player1": 0, "player2": 0}
+cooldown = 0.5 
+bullets = [] 
+bullet_speed = 10 
+
+def shoot_bullet(player, x, y, direction):
+    global last_shot_time
+    current_time = time.time()
+    if current_time - last_shot_time[player] >= cooldown:
+        bullets.append((x, y, direction))
+        last_shot_time[player] = current_time
+
+def move_bullets():
+    global bullets
+    new_bullets = []
+    for x, y, direction in bullets:
+        new_x = x + (bullet_speed * direction)
+        if direction==-1 and y<=220 and x<=680: continue
+        elif direction == 1 and y<=220 and x>=120: continue
+        if 0 <= new_x <= 800: 
+            new_bullets.append((new_x, y, direction))
+    bullets = new_bullets
+
+def draw_bullets():
+    for x, y, _ in bullets:
+        draw_circle(x, y, 5, size=3)
 
 def draw_points(x, y, size, flag):
     global R,G,B
@@ -203,12 +229,12 @@ def showScreen():
     draw_player1()
     draw_player2()
     draw_walls()
-
+    draw_bullets() 
 
     glutSwapBuffers()
 
 def redraw():
-    
+    move_bullets() 
     glutPostRedisplay()
 
 def move_player1():
@@ -243,6 +269,8 @@ def keyboardUpListener(key, x, y):
         player1_up = False
     elif key == b's':
         player1_down = False
+    elif key == b'd':  
+        shoot_bullet("player1", 90, 100 + player1_y, 1)
 
 def specialKeyListener(key, x, y):
     global player2_up, player2_down
@@ -250,6 +278,8 @@ def specialKeyListener(key, x, y):
         player2_up = True
     elif key == GLUT_KEY_DOWN:
         player2_down = True
+    elif key == GLUT_KEY_LEFT: 
+        shoot_bullet("player2", 710, 100 + player2_y, -1)
 
 def specialKeyUpListener(key, x, y):
     global player2_up, player2_down
