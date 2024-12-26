@@ -74,7 +74,6 @@ def draw_player1():
     draw_line(30,70,30,40)  # Left edge
 
     #Right leg
-
     draw_line(40, 40, 50, 40)  # Bottom edge
     draw_line(50, 40, 50, 70)  # Right edge
     draw_line(50, 70, 40, 70)  # Top edge
@@ -82,21 +81,18 @@ def draw_player1():
 
     #2. Shoe
     #Left Shoe
-
     draw_line(30, 40, 40, 40)  # Bottom edge
     draw_line(40, 40, 40, 30)  # Right edge
     draw_line(30, 30, 40, 30)  # Top edge
     draw_line(30, 30, 30, 40)  # Left edge
 
     # Right Shoe
-
     draw_line(40, 40, 50, 40)  # Bottom edge
     draw_line(50, 40, 50, 30)  # Right edge
     draw_line(50, 30, 40, 30)  # Top edge
     draw_line(40, 30, 40, 40)  # Left edge
 
     #3. Body
-
     draw_line(30, 70, 50, 70)  # Bottom edge
     draw_line(50, 70, 50, 100)  # Right edge
     draw_line(50, 100, 30, 100)  # Top edge
@@ -112,7 +108,6 @@ def draw_player1():
     draw_line(50,100,50,90)
 
     #6. gun
-
     draw_line(60,100,90,100)  # Bottom edge
     draw_line(90,100,95,90)  # Right edge
     draw_line(95,90,65,95)  # Top edge
@@ -174,6 +169,10 @@ def draw_player2():
     draw_line(740,80,740,100)
     draw_line(710,100,740,100)
 
+def draw_walls():
+    draw_line(120,0,120,220)
+    draw_line(680,0,680,220)
+
 
 
 def iterate():
@@ -191,6 +190,7 @@ def showScreen():
 
     draw_player1()
     draw_player2()
+    draw_walls()
 
 
     glutSwapBuffers()
