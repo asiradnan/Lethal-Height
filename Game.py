@@ -3,6 +3,9 @@ from OpenGL.GLUT import *
 import threading
 import time
 
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
 R,G,B = 1,1,1
 player1_y, player2_y = 0, 0
 player1_up = False
@@ -10,6 +13,15 @@ player1_down = False
 player2_up = False
 player2_down = False
 player_speed = 5
+
+player1_health = 0 
+player2_health = 0
+
+player1_score = 0
+player2_score = 0
+
+game_over = False
+
 
 last_shot_time = {"player1": 0, "player2": 0}
 cooldown = 0.5 
@@ -231,6 +243,19 @@ def showScreen():
     draw_walls()
     draw_bullets() 
 
+    draw_text(10, SCREEN_HEIGHT - 65, f"Player 1 Score: {player1_score}", 0.2)
+    draw_text(535, SCREEN_HEIGHT - 65, f"Player 2 Score: {player2_score}", 0.2)
+    draw_text(10, SCREEN_HEIGHT - 105, f"Player 1 Health: {player1_health}/10", 0.2)
+    draw_text(495, SCREEN_HEIGHT - 105, f"Player 2 Health: {player2_health}/10", 0.2)
+
+    # if game_over:
+    #     if player1_score > player2_score:
+    #         print(f"Player 1 wins with the score: {player1_score}")
+    #     else:
+    #         print(f"Player 2 wins with the score: {player2_score}")
+
+    #     draw_text(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2, "GAME OVER", 0.3)
+
     glutSwapBuffers()
 
 def redraw():
@@ -288,6 +313,16 @@ def specialKeyUpListener(key, x, y):
     elif key == GLUT_KEY_DOWN:
         player2_down = False
 
+
+def draw_text(x, y, text, scale=1.0):
+    glPushMatrix()
+    glTranslatef(x, y, 0)
+    glScalef(scale, scale, scale)
+    glColor3f(1.0, 1.0, 1.0)
+    for char in text:
+        glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(char))
+    glPopMatrix()
+
 # Start threads
 threading.Thread(target=move_player1, daemon=True).start()
 threading.Thread(target=move_player2, daemon=True).start()
@@ -297,7 +332,7 @@ threading.Thread(target=move_player2, daemon=True).start()
 
 glutInit()
 glutInitDisplayMode(GLUT_RGBA)
-glutInitWindowSize(800, 600)  #window size
+glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT)  #window size
 glutInitWindowPosition(0, 0)
 wind = glutCreateWindow(b"Game!")  #window name
 glutDisplayFunc(showScreen)
