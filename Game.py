@@ -14,19 +14,34 @@ player2_up = False
 player2_down = False
 player_speed = 5
 
-player1_health = 0 
-player2_health = 0
+player1_health = 10 
+player2_health = 10
 
 player1_score = 0
 player2_score = 0
 
+wall_height = 220
+wall_decrease_rate = 0.05  # Pixels per second
+
 game_over = False
+paused = False
+show_menu = True
 
 
 last_shot_time = {"player1": 0, "player2": 0}
 cooldown = 0.5 
 bullets = [] 
 bullet_speed = 10 
+
+
+
+def decrease_walls():
+    global wall_height
+    while True:
+        if not paused and wall_height > 0:
+            wall_height -= wall_decrease_rate
+        time.sleep(0.01)
+
 
 def shoot_bullet(player, x, y, direction):
     global last_shot_time
@@ -35,16 +50,44 @@ def shoot_bullet(player, x, y, direction):
         bullets.append((x, y, direction))
         last_shot_time[player] = current_time
 
+def check_bullet_collision():
+    global bullets, player1_health, player2_health, player1_score, player2_score, game_over
+    new_bullets = []
+    for x, y, direction in bullets:
+        if direction == 1:  # Player 1's bullet
+            if 740 <= x <= 770 and player2_y + 30 <= y <= player2_y + 120:  # Check collision with Player 2's body
+                player2_health -= 1
+                player1_score += 1
+                if player2_health <= 0:
+                    game_over = True
+                    print("Player 1 wins!")
+                continue  # Skip adding this bullet
+        elif direction == -1:  # Player 2's bullet
+            if 30 <= x <= 60 and player1_y + 30 <= y <= player1_y + 120:
+                player1_health -= 1
+                player2_score += 1
+                if player1_health <= 0:
+                    game_over = True
+                    print("Player 2 wins!")
+                continue  # Skip adding this bullet
+        new_bullets.append((x, y, direction))
+    bullets = new_bullets
+
 def move_bullets():
     global bullets
     new_bullets = []
     for x, y, direction in bullets:
         new_x = x + (bullet_speed * direction)
-        if direction==-1 and y<=220 and x<=680: continue
-        elif direction == 1 and y<=220 and x>=120: continue
+        if direction==-1 and y<=wall_height and x<=680: continue
+        elif direction == 1 and y<=wall_height and x>=120: continue
         if 0 <= new_x <= 800: 
             new_bullets.append((new_x, y, direction))
     bullets = new_bullets
+def manage_bullets():
+    while True:
+        move_bullets()
+        check_bullet_collision()
+        time.sleep(0.01)
 
 def draw_bullets():
     for x, y, _ in bullets:
@@ -70,7 +113,7 @@ def draw_line(X1, Y1, X2, Y2, size=5):
         steep = False
     d = 2 * dy - dx
     x, y = X1, Y1
-    for _ in range(dx + 1):
+    for _ in range(int(dx + 1)):
         draw_points(x, y, size, True)
         if d > 0:
             if steep:
@@ -220,8 +263,8 @@ def draw_player2():
     draw_line(710,+player2_y+100,740,100+player2_y)
 
 def draw_walls():
-    draw_line(120,0,120,220)
-    draw_line(680,0,680,220)
+    draw_line(120, 0, 120, wall_height)
+    draw_line(680, 0, 680, wall_height)
 
 
 
@@ -248,6 +291,10 @@ def showScreen():
     draw_text(10, SCREEN_HEIGHT - 105, f"Player 1 Health: {player1_health}/10", 0.2)
     draw_text(495, SCREEN_HEIGHT - 105, f"Player 2 Health: {player2_health}/10", 0.2)
 
+    draw_pause_button(20, SCREEN_HEIGHT-40)
+    draw_cross_button(SCREEN_WIDTH-40, SCREEN_HEIGHT-40)
+    draw_restart_button(SCREEN_WIDTH/2-10, SCREEN_HEIGHT-40)
+
     # if game_over:
     #     if player1_score > player2_score:
     #         print(f"Player 1 wins with the score: {player1_score}")
@@ -259,7 +306,10 @@ def showScreen():
     glutSwapBuffers()
 
 def redraw():
-    move_bullets() 
+    if game_over or  paused:
+        return
+    move_bullets()
+    check_bullet_collision() 
     glutPostRedisplay()
 
 def move_player1():
@@ -313,6 +363,29 @@ def specialKeyUpListener(key, x, y):
     elif key == GLUT_KEY_DOWN:
         player2_down = False
 
+def draw_pause_button(x, y, size=20):
+    if paused:
+        # Draw play triangle
+        glBegin(GL_TRIANGLES)
+        glColor3f(1.0, 1.0, 1.0)
+        glVertex2f(x, y)
+        glVertex2f(x, y + size)
+        glVertex2f(x + size, y + size/2)
+        glEnd()
+    else:
+        # Draw pause bars
+        draw_line(x, y, x, y + size)
+        draw_line(x + size/2, y, x + size/2, y + size)
+
+def draw_cross_button(x, y, size=20):
+    draw_line(x, y, x + size, y + size)
+    draw_line(x, y + size, x + size, y)
+
+def draw_restart_button(x, y, size=20):
+    draw_circle(x + size/2, y + size/2, size/2)
+    # Draw arrow
+    draw_line(x + size/2, y + size, x + size, y + size/2)
+    draw_line(x + size, y + size/2, x + size/2, y)
 
 def draw_text(x, y, text, scale=1.0):
     glPushMatrix()
@@ -323,9 +396,35 @@ def draw_text(x, y, text, scale=1.0):
         glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(char))
     glPopMatrix()
 
+def mouseListener(button, state, x, y):
+    global paused, show_menu, player1_health, player2_health, player1_score, player2_score, game_over
+    if state == GLUT_DOWN:
+        # Convert window coordinates to OpenGL coordinates
+        y = SCREEN_HEIGHT - y
+        
+        # Check pause button (top left)
+        if 20 <= x <= 40 and SCREEN_HEIGHT-40 <= y <= SCREEN_HEIGHT-20:
+            paused = not paused
+            
+        # Check cross button (top right)
+        if SCREEN_WIDTH-40 <= x <= SCREEN_WIDTH-20 and SCREEN_HEIGHT-40 <= y <= SCREEN_HEIGHT-20:
+            glutLeaveMainLoop()
+            
+        # Check restart button (top middle)
+        if SCREEN_WIDTH/2-10 <= x <= SCREEN_WIDTH/2+10 and SCREEN_HEIGHT-40 <= y <= SCREEN_HEIGHT-20:
+            # Reset game state
+            player1_health = 10
+            player2_health = 10
+            player1_score = 0
+            player2_score = 0
+            paused = False
+            game_over = False
+
 # Start threads
 threading.Thread(target=move_player1, daemon=True).start()
 threading.Thread(target=move_player2, daemon=True).start()
+threading.Thread(target=manage_bullets, daemon=True).start()
+threading.Thread(target=decrease_walls, daemon=True).start()
 
         
 
@@ -340,7 +439,7 @@ glutKeyboardFunc(keyboardListener)
 glutSpecialFunc(specialKeyListener)
 glutKeyboardUpFunc(keyboardUpListener)
 glutSpecialUpFunc(specialKeyUpListener)
-# glutMouseFunc(mouseListener)
+glutMouseFunc(mouseListener)
 glutIdleFunc(redraw)
 make_game_over = False
 glutMainLoop()
