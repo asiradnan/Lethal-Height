@@ -4,7 +4,7 @@ import threading
 import time
 
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_HEIGHT = 800
 
 R,G,B = 1,1,1
 player1_y, player2_y = 0, 0
