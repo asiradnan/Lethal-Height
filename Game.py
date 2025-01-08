@@ -8,7 +8,7 @@ import time
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 
-R, G, B = 0,0,0
+R, G, B = 0, 0, 0
 player1_y, player2_y = 0, 0
 player1_up = False
 player1_down = False
@@ -35,7 +35,8 @@ bullets = []
 bullet_speed = 10
 sunYPosition = 600
 
-controlLight = 0  #for backgroung changing
+controlLight = 0  # for backgroung changing
+
 
 def decrease_walls():
     global wall_height
@@ -79,6 +80,11 @@ def check_bullet_collision():
 
 def move_bullets():
     global bullets
+    if game_over:
+        bullets = []
+        return
+    if paused:
+        return
     new_bullets = []
     for x, y, direction in bullets:
         new_x = x + (bullet_speed * direction)
@@ -215,8 +221,6 @@ def draw_player1():
 
     # 4. Head (Black)
 
-
-
     # 5. Hand (White)
     glColor3f(1.0, 1.0, 1.0)  # White
     for x in range(50, 61):  # Filling hand
@@ -266,7 +270,7 @@ def draw_player1():
     draw_line(30, player1_y + 100, 30, player1_y + 70)  # Left edge
 
     # Head outline
-    glColor3f(0.0, 0.0, 0.0)
+    glColor3f(controlLight, controlLight, controlLight)
     draw_circle1(40, 110 + player1_y, 10)
 
     # Hand outline
@@ -379,7 +383,7 @@ def draw_player2():
     draw_line(750, player2_y + 100, 750, player2_y + 70)  # Left edge
 
     # Head outline
-    glColor3f(0.0, 0.0, 0.0)
+    glColor3f(controlLight, controlLight, controlLight)
     draw_circle1(760, 110 + player2_y, 10)
 
     # Hand outline
@@ -421,10 +425,11 @@ def getBackgroundColor(controlLight, reverse=False):
 
     return r, g, b
 
+
 def getSunColor(control):
     # Interpolates the sun's color from yellow (day) to black (night)
     yellow = [1.0, 1.0, 0.0]  # Sun's color during the day
-    black = [0.0, 0.0, 0.0]   # Sun's color during the night
+    black = [0.0, 0.0, 0.0]  # Sun's color during the night
     r = yellow[0] * (1 - control) + black[0] * control
     g = yellow[1] * (1 - control) + black[1] * control
     b = yellow[2] * (1 - control) + black[2] * control
@@ -435,12 +440,12 @@ def draw_river():
     # draw_line(120, 450, 120, 500)  # Left edge
     # draw_line(120, 500, 150, 500)  # Top edge
     # draw_line(150, 500, 150, 450)  # Right edge
-    glColor3f(1,1,1)
-    #draw_line(0, 430, 800, 430)  # Bottom edge
+    glColor3f(1, 1, 1)
+    # draw_line(0, 430, 800, 430)  # Bottom edge
     draw_line(0, 670, 800, 670)  # top edge
 
 
-#FOR SUN
+# FOR SUN
 def draw_line1(X1, Y1, X2, Y2, size=2):
     dx = abs(X2 - X1)
     dy = abs(Y2 - Y1)
@@ -469,6 +474,7 @@ def draw_line1(X1, Y1, X2, Y2, size=2):
             x += sx
         d += 2 * dy
 
+
 def draw_circle1(x_centre, y_centre, r, size=2):
     x = r
     y = 0
@@ -491,8 +497,6 @@ def draw_circle1(x_centre, y_centre, r, size=2):
         draw_line1(x_centre + y, y_centre - x, x_centre - y, y_centre - x, size)
 
 
-
-
 def draw_sun():
     global sunYPosition  # Use the global sun position
     # Get sun color based on the current day-night control
@@ -508,6 +512,8 @@ def draw_sun():
         x2 = 600 + 60 * math.cos(rad)  # End point of the ray
         y2 = sunYPosition + 60 * math.sin(rad)
         draw_line1(x1, y1, x2, y2)  # Draw each ray
+
+
 def draw_walls():
     # Player 1 wall (Brick color)
     glColor3f(179 / 255, 91 / 255, 58 / 255)  # Brick color
@@ -518,23 +524,22 @@ def draw_walls():
             glEnd()
 
     glColor3f(179 / 255, 91 / 255, 58 / 255)  # Brick color
-    draw_line(120, 0, 120, wall_height) # Left edge
-    draw_line(120, wall_height, 150, wall_height) # Top edge
-    draw_line(150, wall_height, 150, 0) # Right edge
-    draw_line(150, 0, 120, 0) # Bottom edge
+    draw_line(120, 0, 120, wall_height)  # Left edge
+    draw_line(120, wall_height, 150, wall_height)  # Top edge
+    draw_line(150, wall_height, 150, 0)  # Right edge
+    draw_line(150, 0, 120, 0)  # Bottom edge
 
-    draw_line(135, 0, 135, wall_height) #mid line y
-    draw_line(120, wall_height/2, 150, wall_height/2)
-    draw_line(120, wall_height/4, 150, wall_height/4)
-    draw_line(120, (wall_height - wall_height/4) , 150, (wall_height - wall_height/4))
+    draw_line(135, 0, 135, wall_height)  # mid line y
+    draw_line(120, wall_height / 2, 150, wall_height / 2)
+    draw_line(120, wall_height / 4, 150, wall_height / 4)
+    draw_line(120, (wall_height - wall_height / 4), 150, (wall_height - wall_height / 4))
     #
     draw_line(120, wall_height / 8, 150, wall_height / 8)
-    draw_line(120, (wall_height- wall_height/8), 150, (wall_height- wall_height/8))
-    draw_line(120, ((wall_height - wall_height/8) - wall_height/2), 150, ((wall_height - wall_height/8) - wall_height/2))
-    draw_line(120, ((wall_height - wall_height / 8) - wall_height / 4), 150, ((wall_height - wall_height / 8) - wall_height /4))
-
-
-
+    draw_line(120, (wall_height - wall_height / 8), 150, (wall_height - wall_height / 8))
+    draw_line(120, ((wall_height - wall_height / 8) - wall_height / 2), 150,
+              ((wall_height - wall_height / 8) - wall_height / 2))
+    draw_line(120, ((wall_height - wall_height / 8) - wall_height / 4), 150,
+              ((wall_height - wall_height / 8) - wall_height / 4))
 
     # Player 2 wall (Brick color)
     glColor3f(179 / 255, 91 / 255, 58 / 255)  # Brick color
@@ -554,7 +559,6 @@ def draw_walls():
     draw_line(650, wall_height / 2, 680, wall_height / 2)
     draw_line(650, wall_height / 4, 680, wall_height / 4)
     draw_line(650, (wall_height - wall_height / 4), 680, (wall_height - wall_height / 4))  # Three-quarters height line
-
 
     draw_line(650, wall_height / 8, 680, wall_height / 8)
     draw_line(650, (wall_height - wall_height / 8), 680, (wall_height - wall_height / 8))  # Three-eighths height line
@@ -594,13 +598,17 @@ def showScreen():
     draw_cross_button(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 40)
     draw_restart_button(SCREEN_WIDTH / 2 - 10, SCREEN_HEIGHT - 40)
 
-    # if game_over:
-    #     if player1_score > player2_score:
-    #         print(f"Player 1 wins with the score: {player1_score}")
-    #     else:
-    #         print(f"Player 2 wins with the score: {player2_score}")
+    if game_over:
+        if player1_score > player2_score:
+            print(f"Player 1 wins with the score: {player1_score}")
+            draw_text(SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2 + 40,
+                      f"Player 1 wins with the score: {player1_score}", 0.3)
+        else:
+            print(f"Player 2 wins with the score: {player2_score}")
+            draw_text(SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT // 2 + 40,
+                      f"Player 2 wins with the score: {player2_score}", 0.3)
 
-    #     draw_text(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2, "GAME OVER", 0.3)
+        draw_text(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2, "GAME OVER", 0.3)
 
     r, g, b = getBackgroundColor(controlLight)
     glClearColor(r, g, b, 1.0)
@@ -643,8 +651,10 @@ def keyboardListener(key, x, y):
         player1_up = True
     elif key == b's':
         player1_down = True
+    elif key == b'd':
+        shoot_bullet("player1", 90, 100 + player1_y, 1)
 
-    #for backgroung change
+    # for backgroung change
     if key == b'n':
         print("Night++")
         if controlLight >= 1:
@@ -660,14 +670,14 @@ def keyboardListener(key, x, y):
             controlLight -= 0.06
         sunYPosition += 3
     glutPostRedisplay()
+
+
 def keyboardUpListener(key, x, y):
     global player1_up, player1_down
     if key == b'w':
         player1_up = False
     elif key == b's':
         player1_down = False
-    elif key == b'd':
-        shoot_bullet("player1", 90, 100 + player1_y, 1)
 
 
 def specialKeyListener(key, x, y):
@@ -774,4 +784,3 @@ glutIdleFunc(redraw)
 make_game_over = False
 glutKeyboardFunc(keyboardListener)
 glutMainLoop()
-
