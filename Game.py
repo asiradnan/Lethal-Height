@@ -1,3 +1,4 @@
+import math
 from math import cos, sin, radians
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -212,18 +213,8 @@ def draw_player1():
             glEnd()
 
     # 4. Head (Black)
-    glColor3f(0.0, 0.0, 0.0)
-    num_segments = 100
-    glBegin(GL_POLYGON)
-    for i in range(num_segments):
-        angle = 2 * 3.141592653589793 * i / num_segments
-        x = 40 + 10 * cos(angle)
-        y = 110 + player1_y + 10 * sin(angle)
-        glVertex2f(x, y)
-    glEnd()
 
-    glColor3f(0.0, 0.0, 0.0)
-    draw_circle(40, 110 + player1_y, 10)
+
 
     # 5. Hand (White)
     glColor3f(1.0, 1.0, 1.0)  # White
@@ -274,7 +265,8 @@ def draw_player1():
     draw_line(30, player1_y + 100, 30, player1_y + 70)  # Left edge
 
     # Head outline
-    draw_circle(40, 110 + player1_y, 10)
+    glColor3f(0.0, 0.0, 0.0)
+    draw_circle1(40, 110 + player1_y, 10)
 
     # Hand outline
     draw_line(50, player1_y + 90, 60, player1_y + 90)  # Bottom edge
@@ -336,15 +328,6 @@ def draw_player2():
             glEnd()
 
     # 4. Head (Black)
-    glColor3f(0.0, 0.0, 0.0)  # Black
-    num_segments = 100
-    glBegin(GL_POLYGON)
-    for i in range(num_segments):
-        angle = 2 * 3.141592653589793 * i / num_segments
-        x = 760 + 10 * cos(angle)
-        y = 110 + player2_y + 10 * sin(angle)
-        glVertex2f(x, y)
-    glEnd()
 
     # 5. Hand (Red)
     glColor3f(1.0, 0.0, 0.0)  # Red
@@ -395,7 +378,8 @@ def draw_player2():
     draw_line(750, player2_y + 100, 750, player2_y + 70)  # Left edge
 
     # Head outline
-    draw_circle(760, 110 + player2_y, 10)
+    glColor3f(0.0, 0.0, 0.0)
+    draw_circle1(760, 110 + player2_y, 10)
 
     # Hand outline
     draw_line(740, player2_y + 90, 750, player2_y + 90)  # Bottom edge
@@ -436,16 +420,92 @@ def getBackgroundColor(controlLight, reverse=False):
 
     return r, g, b
 
+def getSunColor(control):
+    # Interpolates the sun's color from yellow (day) to black (night)
+    yellow = [1.0, 1.0, 0.0]  # Sun's color during the day
+    black = [0.0, 0.0, 0.0]   # Sun's color during the night
+    r = yellow[0] * (1 - control) + black[0] * control
+    g = yellow[1] * (1 - control) + black[1] * control
+    b = yellow[2] * (1 - control) + black[2] * control
+    return r, g, b
+
+
 def draw_river():
     # draw_line(120, 450, 120, 500)  # Left edge
     # draw_line(120, 500, 150, 500)  # Top edge
     # draw_line(150, 500, 150, 450)  # Right edge
-    draw_line(0, 430, 800, 430)  # Bottom edge
-    draw_line(0, 650, 800, 650)  # Bottom edge
+    glColor3f(1,1,1)
+    #draw_line(0, 430, 800, 430)  # Bottom edge
+    draw_line(0, 670, 800, 670)  # top edge
+
+
+#FOR SUN
+def draw_line1(X1, Y1, X2, Y2, size=2):
+    dx = abs(X2 - X1)
+    dy = abs(Y2 - Y1)
+    sx = 1 if X2 > X1 else -1  # Step for x
+    sy = 1 if Y2 > Y1 else -1  # Step for y
+    if dy > dx:
+        dx, dy = dy, dx
+        steep = True
+    else:
+        steep = False
+    d = 2 * dy - dx
+    x, y = X1, Y1
+    for _ in range(int(dx + 1)):
+        glBegin(GL_POINTS)
+        glVertex2f(x, y)
+        glEnd()
+        if d > 0:
+            if steep:
+                x += sx
+            else:
+                y += sy
+            d -= 2 * dx
+        if steep:
+            y += sy
+        else:
+            x += sx
+        d += 2 * dy
+
+def draw_circle1(x_centre, y_centre, r, size=2):
+    x = r
+    y = 0
+    P = 1 - r
+    draw_line1(x_centre + x, y_centre, x_centre - x, y_centre, size)  # Horizontal line for the center
+    draw_line1(x_centre, y_centre + x, x_centre, y_centre - x, size)  # Vertical line for the center
+    while x > y:
+        y += 1
+        if P <= 0:
+            P = P + 2 * y + 1
+        else:
+            x -= 1
+            P = P + 2 * y - 2 * x + 1
+        if x < y:
+            break
+        # Drawing octants
+        draw_line1(x_centre + x, y_centre + y, x_centre - x, y_centre + y, size)
+        draw_line1(x_centre + x, y_centre - y, x_centre - x, y_centre - y, size)
+        draw_line1(x_centre + y, y_centre + x, x_centre - y, y_centre + x, size)
+        draw_line1(x_centre + y, y_centre - x, x_centre - y, y_centre - x, size)
+
+
+
 
 def draw_sun():
-    glLineWidth(3)
-    draw_circle(600, 600, 30)
+    # Get sun color based on the current day-night control
+    r, g, b = getSunColor(controlLight)
+    glColor3f(r, g, b)  # Set the sun color
+    draw_circle1(600, 600, 30)  # Draw filled circle for the sun
+
+    # Draw sun rays using Midpoint Line Algorithm
+    for angle in range(0, 360, 15):  # 15-degree step for rays
+        rad = angle * math.pi / 180.0
+        x1 = 600 + 30 * math.cos(rad)  # Start point of the ray
+        y1 = 600 + 30 * math.sin(rad)
+        x2 = 600 + 60 * math.cos(rad)  # End point of the ray
+        y2 = 600 + 60 * math.sin(rad)
+        draw_line1(x1, y1, x2, y2)  # Draw each ray
 def draw_walls():
     # Player 1 wall (Brick color)
     glColor3f(179 / 255, 91 / 255, 58 / 255)  # Brick color
@@ -595,7 +655,7 @@ def keyboardListener(key, x, y):
             controlLight = 0
         else:
             controlLight -= 0.06
-
+    glutPostRedisplay()
 def keyboardUpListener(key, x, y):
     global player1_up, player1_down
     if key == b'w':
@@ -689,6 +749,8 @@ def mouseListener(button, state, x, y):
 # Start threads
 threading.Thread(target=move_player1, daemon=True).start()
 threading.Thread(target=move_player2, daemon=True).start()
+threading.Thread(target=move_player2, daemon=True).start()
+threading.Thread(target=move_player2, daemon=True).start()
 threading.Thread(target=manage_bullets, daemon=True).start()
 threading.Thread(target=decrease_walls, daemon=True).start()
 
@@ -698,6 +760,7 @@ glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT)  # window size
 glutInitWindowPosition(0, 0)
 wind = glutCreateWindow(b"Game!")  # window name
 glutDisplayFunc(showScreen)
+glutIdleFunc(showScreen)
 glutKeyboardFunc(keyboardListener)
 glutSpecialFunc(specialKeyListener)
 glutKeyboardUpFunc(keyboardUpListener)
@@ -705,5 +768,6 @@ glutSpecialUpFunc(specialKeyUpListener)
 glutMouseFunc(mouseListener)
 glutIdleFunc(redraw)
 make_game_over = False
+glutKeyboardFunc(keyboardListener)
 glutMainLoop()
 
