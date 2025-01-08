@@ -484,7 +484,7 @@ def draw_circle1(x_centre, y_centre, r, size=2):
     while x > y:
         y += 1
         if P <= 0:
-            P = P + 2 * y + 1
+            P = P + 2 * y + 1 #gh
         else:
             x -= 1
             P = P + 2 * y - 2 * x + 1
