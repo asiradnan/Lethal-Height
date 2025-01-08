@@ -33,6 +33,7 @@ last_shot_time = {"player1": 0, "player2": 0}
 cooldown = 0.5
 bullets = []
 bullet_speed = 10
+sunYPosition = 600
 
 controlLight = 0  #for backgroung changing
 
@@ -493,18 +494,19 @@ def draw_circle1(x_centre, y_centre, r, size=2):
 
 
 def draw_sun():
+    global sunYPosition  # Use the global sun position
     # Get sun color based on the current day-night control
     r, g, b = getSunColor(controlLight)
     glColor3f(r, g, b)  # Set the sun color
-    draw_circle1(600, 600, 30)  # Draw filled circle for the sun
+    draw_circle1(600, sunYPosition, 30)  # Draw filled circle for the sun
 
     # Draw sun rays using Midpoint Line Algorithm
     for angle in range(0, 360, 15):  # 15-degree step for rays
         rad = angle * math.pi / 180.0
         x1 = 600 + 30 * math.cos(rad)  # Start point of the ray
-        y1 = 600 + 30 * math.sin(rad)
+        y1 = sunYPosition + 30 * math.sin(rad)
         x2 = 600 + 60 * math.cos(rad)  # End point of the ray
-        y2 = 600 + 60 * math.sin(rad)
+        y2 = sunYPosition + 60 * math.sin(rad)
         draw_line1(x1, y1, x2, y2)  # Draw each ray
 def draw_walls():
     # Player 1 wall (Brick color)
@@ -636,7 +638,7 @@ def move_player2():
 
 # Update keyboard listeners
 def keyboardListener(key, x, y):
-    global player1_up, player1_down, controlLight
+    global player1_up, player1_down, controlLight, sunYPosition
     if key == b'w':
         player1_up = True
     elif key == b's':
@@ -649,12 +651,14 @@ def keyboardListener(key, x, y):
             controlLight = 1
         else:
             controlLight += 0.06
+        sunYPosition -= 3
     if key == b'm':
         print("Day++")
         if controlLight <= 0:
             controlLight = 0
         else:
             controlLight -= 0.06
+        sunYPosition += 3
     glutPostRedisplay()
 def keyboardUpListener(key, x, y):
     global player1_up, player1_down
