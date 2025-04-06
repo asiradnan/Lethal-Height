@@ -1,7 +1,6 @@
 # 2D Shooting Game (OpenGL)
 
-![Game Screenshot](screenshot.png) *(add a screenshot if available)*
-
+![Game Screenshot](day.png) 
 ## Overview
 A 2D shooting game built with Python and OpenGL featuring dynamic day-night cycles, destructible environments, and dual-player combat.
 
