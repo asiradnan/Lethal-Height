@@ -50,6 +50,17 @@ python Game.py
   <li>Cooldown of 0.5s between shots.</li>
 </ol>
 
+## Screenshots
+
+![Daytime Gameplay](day.png)  
+*Day mode with bright background and visible sun*
+
+![Nighttime Gameplay](night.png)  
+*Night mode with dark environment and glowing elements*
+
+![Game Over Screen](screenshot.png)  
+*Victory screen showing winner and final scores*
+
 ## Future Enhancements
 - Sound effects
 - Power-ups (rapid fire, health packs)
